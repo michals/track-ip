@@ -28,3 +28,4 @@ user@projectdir$ appcfg.py update .
 ```
 [Tested on localhost](http://track-ip.appspot.com/ip/save/myhostname/123-secrt-code-xyz)
 Added Makefile with runserver and deploy targets.
+Added Handler to show IP when GET [whatever.track-ip.appspot.com](http://whatever.track-ip.appspot.com/)
