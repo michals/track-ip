@@ -36,3 +36,9 @@ Monitor deployed app on [develoepr console](https://console.developers.google.co
 Define data model for storing ip and hostname (kind: Host).
 Update save handler to create or update host ip in datastore.
 Update show handler to resolve ip based on datastore.
+
+## Step 4
+
+Added Profile kind with reference to user object as a key and list of host keys.
+Added login/logout on main page handler.
+Creating profile for logged user and loading profile for user with profile already created.

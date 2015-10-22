@@ -1,5 +1,6 @@
 import webapp2
 from google.appengine.ext import ndb
+from google.appengine.api import users
 
 
 class Host(ndb.Model):
@@ -18,9 +19,21 @@ class Host(ndb.Model):
         return ndb.Key(cls, name).get()
 
 
+class Profile(ndb.Model):
+    ''' user profile having own hosts. We use Users.user_id() as a key. '''
+    hostkeys = ndb.KeyProperty(repeated=True, kind=Host)
+
+    @classmethod
+    def get_by_user(cls, user):
+        return cls.get_by_id(user.user_id())
+
+    @property
+    def hosts(self):
+        return ndb.get_multi(self.hostnames)
+
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
         out = self.response.out
         server_name = self.request.server_name
         suffix = '.localhost' if server_name.endswith('localhost') else '.track-ip.appspot.com'
@@ -30,9 +43,22 @@ class MainPage(webapp2.RequestHandler):
             if not host:
                self.error(403)
             else:
+                self.response.headers['Content-Type'] = 'text/plain'
                 out.write(host.ip)
         else:
-            self.response.write(':-)')
+            user = users.get_current_user()
+            self.response.headers['Content-Type'] = 'text/html'
+            if user:
+                prof = Profile.get_by_user(user)
+                if not prof:
+                    prof = Profile(id=user.user_id())
+                    prof.put()
+                greeting = ('Welcome, %s! (<a href="%s">sign out</a>)' %
+                        (user.nickname(), users.create_logout_url('/')))
+            else:
+                greeting = ('<a href="%s">Sign in or register</a>.' %
+                        users.create_login_url('/'))
+            out.write('<html><body>%s</body></html>' % greeting)
 
 class SaveIpPage(webapp2.RequestHandler):
     def get(self, hostname, code):
