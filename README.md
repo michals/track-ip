@@ -42,3 +42,5 @@ Update show handler to resolve ip based on datastore.
 Added Profile kind with reference to user object as a key and list of host keys.
 Added login/logout on main page handler.
 Creating profile for logged user and loading profile for user with profile already created.
+Allow new host cration only for logger users and bind host to user profile.
+List user owned hosts on main page.

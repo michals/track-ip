@@ -29,7 +29,7 @@ class Profile(ndb.Model):
 
     @property
     def hosts(self):
-        return ndb.get_multi(self.hostnames)
+        return ndb.get_multi(self.hostkeys)
 
 
 class MainPage(webapp2.RequestHandler):
@@ -55,6 +55,7 @@ class MainPage(webapp2.RequestHandler):
                     prof.put()
                 greeting = ('Welcome, %s! (<a href="%s">sign out</a>)' %
                         (user.nickname(), users.create_logout_url('/')))
+                greeting += '<pre>' + '\n'.join(':'.join([host.name, host.ip, host.code]) for host in prof.hosts)
             else:
                 greeting = ('<a href="%s">Sign in or register</a>.' %
                         users.create_login_url('/'))
@@ -68,11 +69,22 @@ class SaveIpPage(webapp2.RequestHandler):
         out.write('{ip_to_save} for {hostname}... '.format(**locals()))
         host = Host.get_by_name(hostname)
         if not host:
+            user = users.get_current_user()
+            if not user:
+                self.error(403)
+                out.write('please login to create new host')
+                return
+            prof = Profile.get_by_user(user)
+            if not prof:
+                self.error(403)
+                out.write('please login to create new host')
             # not in datastore, lets create it!
             host = Host(id=hostname, ip=ip_to_save)
             host.code = code
             out.write('creating new host... ')
             host.put()
+            prof.hostkeys.append(host.key)
+            prof.put()
             out.write('OK')
         else:
             # host in datastore, let's update ip
